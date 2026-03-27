@@ -25,6 +25,9 @@ export function Sidebar() {
         <NavLink to="/playlists" className={linkClass}>
           <span>📋</span> Playlists
         </NavLink>
+        <NavLink to="/stats" className={linkClass}>
+          <span>📊</span> Stats
+        </NavLink>
       </nav>
     </aside>
   );

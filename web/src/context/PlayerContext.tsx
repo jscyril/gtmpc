@@ -22,6 +22,7 @@ import React, {
 import type { Track } from '../api/types';
 import { streamURL } from '../api/library';
 import { getToken } from '../utils/storage';
+import { useStats } from './StatsContext';
 
 interface PlayerState {
   currentTrack: Track | null;
@@ -47,6 +48,7 @@ const PlayerContext = createContext<PlayerContextValue | null>(null);
 
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const audioRef = useRef(new Audio());
+  const { recordPlay } = useStats();
   const [state, setState] = useState<PlayerState>({
     currentTrack: null,
     queue: [],
@@ -139,6 +141,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       audio.load();
       await audio.play();
 
+      // Record this play event in the stats tracker
+      recordPlay(track);
+
       setState((s) => ({
         ...s,
         currentTrack: track,
@@ -162,7 +167,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         isPlaying: true,
       }));
     }
-  }, []);
+  }, [recordPlay]);
 
   const play = useCallback((track: Track, queue: Track[] = [track], index = 0) => {
     playTrackInternal(track, queue, index);

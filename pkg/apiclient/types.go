@@ -80,3 +80,30 @@ type HealthResponse struct {
 type APIError struct {
 	Error string `json:"error"`
 }
+
+// ─── Client-side statistics types (no backend required) ───────────────────────
+
+// ArtistBar is one row in the artist breakdown chart.
+type ArtistBar struct {
+	Artist string
+	Count  int
+	Bar    string // pre-rendered ASCII bar e.g. "████████"
+}
+
+// StatsSummary holds all computed session statistics.
+// It is produced by pkg/stats and consumed by TUI and web contexts.
+type StatsSummary struct {
+	TracksPlayed     int
+	TracksLiked      int
+	TotalSeconds     int
+	FormattedTime    string
+	TopArtist        string
+	ArtistPlayCounts map[string]int
+	MeanDurationSec  float64
+	StdDevSec        float64
+	FormattedMean    string
+	FormattedStdDev  string
+	MostPlayedTitle  string
+	MostPlayedCount  int
+	ArtistChart      []ArtistBar
+}

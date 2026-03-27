@@ -13,6 +13,7 @@ import (
 	"github.com/jscyril/golang_music_player/internal/ui/screens"
 	"github.com/jscyril/golang_music_player/internal/ui/styles"
 	"github.com/jscyril/golang_music_player/pkg/apiclient"
+	"github.com/jscyril/golang_music_player/pkg/stats"
 )
 
 // ClientScreen enumerates the active screen in client mode.
@@ -24,6 +25,7 @@ const (
 	ClientScreenLibrary
 	ClientScreenPlayer
 	ClientScreenPlaylist
+	ClientScreenStats
 	ClientScreenError
 )
 
@@ -41,10 +43,14 @@ type ClientApp struct {
 	libraryScreen  screens.LibraryScreen
 	playerScreen   screens.PlayerScreen
 	playlistScreen screens.PlaylistScreen
+	statsScreen    screens.StatsScreen
 
 	// Playback state
 	allTracks []apiclient.Track
 	queueIdx  int
+
+	// Session statistics tracker
+	stats *stats.Stats
 
 	// Error state
 	connErr string
@@ -61,11 +67,13 @@ type healthCheckMsg struct {
 
 // NewClientApp creates the root application model.
 func NewClientApp(client *apiclient.APIClient, engine *audio.AudioEngine, width, height int) ClientApp {
+	s := stats.New()
 	return ClientApp{
 		client:      client,
 		engine:      engine,
 		screen:      ClientScreenLogin,
 		loginScreen: screens.NewLoginScreen(client, width, height),
+		stats:       s,
 		width:       width,
 		height:      height,
 	}
@@ -103,11 +111,17 @@ func (a ClientApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.String() == "ctrl+c" {
 			return a, tea.Quit
 		}
-		// 'q' quits from library/error screens (player handles its own q)
-		if a.screen == ClientScreenLibrary || a.screen == ClientScreenError {
+		// 'q' quits from library/stats/error screens (player handles its own q)
+		if a.screen == ClientScreenLibrary || a.screen == ClientScreenStats || a.screen == ClientScreenError {
 			if msg.String() == "q" {
 				return a, tea.Quit
 			}
+		}
+		// [4] navigates to Stats from Library
+		if a.screen == ClientScreenLibrary && msg.String() == "4" {
+			a.statsScreen = screens.NewStatsScreen(a.stats, a.width, a.height)
+			a.screen = ClientScreenStats
+			return a, a.statsScreen.Init()
 		}
 		// '?' shows help in any screen (we just render it inline)
 		if msg.String() == "?" {
@@ -142,6 +156,8 @@ func (a ClientApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case screens.PlayTrackMsg:
 		a.allTracks = msg.AllTracks
 		a.queueIdx = msg.Index
+		// Record the play event in session stats
+		a.stats.RecordPlay(msg.Track.ID, msg.Track.Title, msg.Track.Artist, msg.Track.Album, msg.Track.DurationSeconds)
 		// Start playback via HTTP streaming
 		streamURL := a.client.StreamURL(msg.Track.ID)
 		if err := playHTTPTrack(a.engine, streamURL, a.client.Token); err != nil {
@@ -158,6 +174,7 @@ func (a ClientApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if len(a.allTracks) > 0 {
 			track := a.allTracks[a.queueIdx]
+			a.stats.RecordPlay(track.ID, track.Title, track.Artist, track.Album, track.DurationSeconds)
 			streamURL := a.client.StreamURL(track.ID)
 			playHTTPTrack(a.engine, streamURL, a.client.Token)
 			a.playerScreen = screens.NewPlayerScreen(a.engine, a.client, track, a.allTracks, a.queueIdx, a.width, a.height)
@@ -168,6 +185,7 @@ func (a ClientApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if a.queueIdx > 0 {
 			a.queueIdx--
 			track := a.allTracks[a.queueIdx]
+			a.stats.RecordPlay(track.ID, track.Title, track.Artist, track.Album, track.DurationSeconds)
 			streamURL := a.client.StreamURL(track.ID)
 			playHTTPTrack(a.engine, streamURL, a.client.Token)
 			a.playerScreen = screens.NewPlayerScreen(a.engine, a.client, track, a.allTracks, a.queueIdx, a.width, a.height)
@@ -180,6 +198,11 @@ func (a ClientApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case screens.BackToLibraryMsg:
 		a.screen = ClientScreenLibrary
 		return a, nil
+
+	case screens.GoToStatsMsg:
+		a.statsScreen = screens.NewStatsScreen(a.stats, a.width, a.height)
+		a.screen = ClientScreenStats
+		return a, a.statsScreen.Init()
 
 	case screens.GoToPlaylistMsg:
 		a.playlistScreen = screens.NewPlaylistScreen(a.client, a.width, a.height)
@@ -200,6 +223,8 @@ func (a ClientApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.playerScreen, cmd = a.playerScreen.Update(msg)
 	case ClientScreenPlaylist:
 		a.playlistScreen, cmd = a.playlistScreen.Update(msg)
+	case ClientScreenStats:
+		a.statsScreen, cmd = a.statsScreen.Update(msg)
 	case ClientScreenError:
 		if kMsg, ok := msg.(tea.KeyMsg); ok {
 			switch kMsg.String() {
@@ -232,6 +257,8 @@ func (a ClientApp) View() string {
 		content = a.playerScreen.View()
 	case ClientScreenPlaylist:
 		content = a.playlistScreen.View()
+	case ClientScreenStats:
+		content = a.renderWithStatusBar(a.statsScreen.View())
 	case ClientScreenError:
 		content = a.renderErrorScreen()
 	}
@@ -255,7 +282,7 @@ func (a ClientApp) renderWithStatusBar(content string) string {
 
 	statusBar := styles.StatusBarStyle.
 		Width(a.width).
-		Render(fmt.Sprintf("  %s  |  User: %s  |  [?] Help  [q] Quit", nowPlaying, a.username))
+		Render(fmt.Sprintf("  %s  |  User: %s  |  [4] Stats  [q] Quit", nowPlaying, a.username))
 
 	// Trim content to fit height
 	lines := strings.Split(content, "\n")

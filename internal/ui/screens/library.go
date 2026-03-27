@@ -265,7 +265,7 @@ func (s LibraryScreen) View() string {
 	}
 
 	sb.WriteString("\n")
-	sb.WriteString(styles.HelpStyle.Render("[j/k] Navigate  [Enter] Play  [/] Search  [p] Playlists  [r] Refresh  [q] Quit"))
+	sb.WriteString(styles.HelpStyle.Render("[j/k] Navigate  [Enter] Play  [/] Search  [p] Playlists  [4] Stats  [r] Refresh  [q] Quit"))
 
 	return sb.String()
 }
