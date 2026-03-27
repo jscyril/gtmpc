@@ -10,7 +10,6 @@
 /bin/
 musicplayer
 
-
 # Test binary, built with `go test -c`
 *.test
 
@@ -27,9 +26,12 @@ profile.cov
 go.work
 go.work.sum
 
-# env file
+# Environment variables (never commit secrets)
 .env
-DESIGN.md
 
-# .idea/
-# .vscode/
+# Built binaries
+/gtmpc-server
+/server
+
+# Data directory (created at runtime)
+/data/

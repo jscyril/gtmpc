@@ -101,3 +101,40 @@ type Player interface {
 	SetVolume(level float64) error
 	GetState() *PlaybackState
 }
+
+// --- Server / Auth Types ---
+
+// User represents a registered user with a bcrypt-hashed password
+type User struct {
+	ID           string    `json:"id"`
+	Username     string    `json:"username"`
+	PasswordHash string    `json:"-"` // Never serialized in JSON responses
+	Role         string    `json:"role"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
+// RegisterRequest is the payload for user registration
+type RegisterRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Role     string `json:"role"`
+}
+
+// LoginRequest is the payload for user login
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+// LoginResponse is returned on successful authentication
+type LoginResponse struct {
+	Token string `json:"token"`
+	User  User   `json:"user"`
+}
+
+// APIResponse is a generic JSON envelope for all API responses
+type APIResponse struct {
+	Success bool        `json:"success"`
+	Data    interface{} `json:"data,omitempty"`
+	Error   string      `json:"error,omitempty"`
+}
