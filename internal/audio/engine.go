@@ -307,3 +307,48 @@ func (e *AudioEngine) GetState() *api.PlaybackState {
 	}
 	return &state
 }
+
+// PlayFromURL streams audio from an HTTP URL using Authorization header.
+// It uses NewHTTPStreamer to decode the audio and plays it through the existing speaker pipeline.
+// This method is used by the client-server TUI (cmd/client) to stream from the server.
+func (e *AudioEngine) PlayFromURL(streamURL string, token string) error {
+	streamer, format, err := NewHTTPStreamer(streamURL, token)
+	if err != nil {
+		return fmt.Errorf("http streamer: %w", err)
+	}
+
+	e.stopPlayback()
+
+	var src beep.Streamer = streamer
+	if format.SampleRate != e.sampleRate {
+		logger.Info("Resampling HTTP stream from %d to %d Hz", format.SampleRate, e.sampleRate)
+		src = beep.Resample(4, format.SampleRate, e.sampleRate, streamer)
+	}
+
+	e.mu.Lock()
+	e.streamer = streamer
+	e.format = format
+	e.trackRate = format.SampleRate
+	e.ctrl = &beep.Ctrl{Streamer: src, Paused: false}
+	e.volume = &effects.Volume{
+		Streamer: e.ctrl,
+		Base:     2,
+		Volume:   e.state.Volume*2 - 1,
+		Silent:   false,
+	}
+	e.state.Status = api.StatusPlaying
+	e.state.Position = 0
+	// Clear current track metadata (populated by the caller via Play() for local files;
+	// for HTTP streams the caller tracks this via the apiclient.Track struct).
+	e.state.CurrentTrack = nil
+	e.mu.Unlock()
+
+	speaker.Play(beep.Seq(e.volume, beep.Callback(func() {
+		logger.Info("HTTP stream ended")
+		e.events <- api.AudioEvent{Type: api.EventTrackEnded}
+	})))
+
+	logger.Info("HTTP stream playback started: %s", streamURL)
+	e.events <- api.AudioEvent{Type: api.EventTrackStarted}
+	return nil
+}
