@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 
@@ -47,7 +46,7 @@ func (s *DBService) Register(ctx context.Context, req api.RegisterRequest) (*api
 	user, err := s.repo.Create(ctx, id, req.Username, string(hash), role)
 	if err != nil {
 		// Map DB duplicate key to our sentinel error
-		if errors.Is(err, fmt.Errorf("username already taken")) || err.Error() == "username already taken" {
+		if err.Error() == "username already taken" {
 			return nil, ErrUserAlreadyExists
 		}
 		return nil, fmt.Errorf("auth: registration failed: %w", err)

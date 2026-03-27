@@ -56,10 +56,10 @@ func ValidateToken(tokenStr string, secret []byte) (*Claims, error) {
 		return nil, ErrInvalidToken
 	}
 
-	// Verify signature
+	// Verify signature using constant-time comparison to prevent timing attacks
 	signingInput := parts[0] + "." + parts[1]
 	expectedSig := sign([]byte(signingInput), secret)
-	if parts[2] != expectedSig {
+	if !hmac.Equal([]byte(parts[2]), []byte(expectedSig)) {
 		return nil, ErrInvalidToken
 	}
 

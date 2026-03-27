@@ -1,6 +1,7 @@
 package views
 
 import (
+	"fmt"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -136,7 +137,7 @@ func (v PlaylistView) View() string {
 					line += " - " + pl.Description
 				}
 				line += lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render(
-					" (" + string(rune('0'+len(pl.Tracks))) + " tracks)")
+					fmt.Sprintf(" (%d tracks)", len(pl.Tracks)))
 
 				if i == v.Selected {
 					sb.WriteString(selectedStyle.Render(line))

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -92,7 +93,7 @@ func (s *Server) Start(ctx context.Context, lib *library.Library, trackRepo *dat
 	go func() {
 		defer wg.Done()
 		log.Printf("[SERVER] Listening on %s", s.httpServer.Addr)
-		if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := s.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErr <- err
 		}
 	}()

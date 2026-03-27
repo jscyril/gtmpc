@@ -1,6 +1,7 @@
 package components
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -300,7 +301,7 @@ func (fb FileBrowser) View() string {
 	countStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 	sb.WriteString(countStyle.Render(
 		strings.Repeat("─", 20) + "\n" +
-			"Files: " + string(rune('0'+fileCount/100%10)) + string(rune('0'+fileCount/10%10)) + string(rune('0'+fileCount%10))))
+			fmt.Sprintf("Files: %d", fileCount)))
 
 	// Help text
 	sb.WriteString("\n\n")

@@ -49,7 +49,9 @@ func run() error {
 
 	// Initialize audio engine
 	audioEngine := audio.NewAudioEngine()
-	audioEngine.Start(ctx)
+	if err := audioEngine.Start(ctx); err != nil {
+		return fmt.Errorf("start audio engine: %w", err)
+	}
 
 	// Load persisted library (or create empty)
 	libraryPath := filepath.Join(cfg.DataDir, "library.json")

@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -30,8 +31,7 @@ type Handlers struct {
 
 // NewHandlers creates a Handlers struct with the given dependencies.
 func NewHandlers(authDB *auth.DBService, trackRepo *database.TrackRepo, secret []byte, uploadDir string) *Handlers {
-	// Ensure upload directory exists
-	os.MkdirAll(uploadDir, 0755)
+	_ = os.MkdirAll(uploadDir, 0755)
 	return &Handlers{
 		AuthDB:    authDB,
 		TrackRepo: trackRepo,
@@ -59,10 +59,9 @@ func (h *Handlers) HandleRegister(w http.ResponseWriter, r *http.Request) {
 	user, err := h.AuthDB.Register(r.Context(), req)
 	if err != nil {
 		status := http.StatusInternalServerError
-		switch err {
-		case auth.ErrUserAlreadyExists:
+		if errors.Is(err, auth.ErrUserAlreadyExists) {
 			status = http.StatusConflict
-		case auth.ErrEmptyCredentials:
+		} else if errors.Is(err, auth.ErrEmptyCredentials) {
 			status = http.StatusBadRequest
 		}
 		writeJSON(w, status, api.APIResponse{Success: false, Error: err.Error()})
@@ -89,7 +88,7 @@ func (h *Handlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	user, err := h.AuthDB.Authenticate(r.Context(), req)
 	if err != nil {
 		status := http.StatusUnauthorized
-		if err == auth.ErrEmptyCredentials {
+		if errors.Is(err, auth.ErrEmptyCredentials) {
 			status = http.StatusBadRequest
 		}
 		writeJSON(w, status, api.APIResponse{Success: false, Error: err.Error()})
@@ -213,7 +212,10 @@ func (h *Handlers) HandleUploadTrack(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Limit upload size to 50MB
-	r.ParseMultipartForm(50 << 20)
+	if err := r.ParseMultipartForm(50 << 20); err != nil {
+		writeJSON(w, http.StatusBadRequest, api.APIResponse{Success: false, Error: "invalid multipart form"})
+		return
+	}
 
 	file, header, err := r.FormFile("file")
 	if err != nil {
@@ -224,17 +226,20 @@ func (h *Handlers) HandleUploadTrack(w http.ResponseWriter, r *http.Request) {
 
 	// Validate file extension
 	ext := strings.ToLower(filepath.Ext(header.Filename))
-	if ext != ".mp3" && ext != ".wav" && ext != ".flac" && ext != ".ogg" {
+	if ext != ".mp3" && ext != ".wav" && ext != ".flac" {
 		writeJSON(w, http.StatusBadRequest, api.APIResponse{
 			Success: false,
-			Error:   "unsupported format: only .mp3, .wav, .flac, .ogg allowed",
+			Error:   "unsupported format: only .mp3, .wav, .flac allowed",
 		})
 		return
 	}
 
 	// Generate unique ID for the track
 	idBytes := make([]byte, 16)
-	rand.Read(idBytes)
+	if _, err := rand.Read(idBytes); err != nil {
+		writeJSON(w, http.StatusInternalServerError, api.APIResponse{Success: false, Error: "failed to generate track ID"})
+		return
+	}
 	trackID := hex.EncodeToString(idBytes)
 
 	// Save the file to the upload directory

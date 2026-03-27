@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -41,7 +42,9 @@ func run() error {
 	log.Printf("[CONFIG] Loaded from %s", configPath)
 
 	// --- Step 2: Ensure data directories exist ---
-	os.MkdirAll(cfg.DataDir, 0755)
+	if err := os.MkdirAll(cfg.DataDir, 0755); err != nil {
+		return fmt.Errorf("create data directory: %w", err)
+	}
 
 	// --- Step 3: Setup graceful shutdown ---
 	ctx, cancel := context.WithCancel(context.Background())
@@ -106,7 +109,9 @@ func run() error {
 	if uploadDir == "" {
 		uploadDir = filepath.Join(cfg.DataDir, "uploads")
 	}
-	os.MkdirAll(uploadDir, 0755)
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		return fmt.Errorf("create upload directory: %w", err)
+	}
 	log.Printf("[UPLOAD] Upload directory: %s", uploadDir)
 
 	// --- Step 10: Start HTTP server ---

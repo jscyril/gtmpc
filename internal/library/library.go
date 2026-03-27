@@ -233,13 +233,11 @@ func (l *Library) removeFromIndex(index map[string][]string, key, trackID string
 // Scan scans the configured paths and adds tracks to the library
 func (l *Library) Scan(ctx context.Context, paths []string) error {
 	l.ScanPaths = paths
-	tracks, errors := l.scanner.Scan(ctx, paths)
+	tracks, errs := l.scanner.Scan(ctx, paths)
 
-	// Collect errors
-	var scanErrors []error
+	// Drain error channel in background to prevent blocking workers
 	go func() {
-		for err := range errors {
-			scanErrors = append(scanErrors, err)
+		for range errs {
 		}
 	}()
 

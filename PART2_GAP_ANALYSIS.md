@@ -1,68 +1,63 @@
 # Assignment Part 2 — Feature Analysis
 
-> What's already implemented vs what needs to be added.
+> Based on the assignment spec: each contributor implements **2 additional features**.
 
 ---
 
-## ✅ Already Implemented (Part 2 extras beyond baseline)
+## ✅ Your 2 Features (Already Implemented)
 
-| Feature | Where | Notes |
-|---|---|---|
-| **JWT Authentication** | `internal/auth/jwt.go`, `middleware.go` | Custom HMAC-SHA256 — no external JWT lib |
-| **Middleware pipeline** | `internal/server/middleware.go` | Logging, CORS, Auth — composable `Chain()` |
-| **Database integration** | `internal/database/` | PostgreSQL with `pgxpool`, migrations, repos |
-| **Unit Testing** | `internal/auth/auth_test.go` | 4 tests: bcrypt, persistence, JWT roundtrip |
-| **Logging system** | `middleware.go` `LoggingMiddleware` | Method, path, latency per request |
-| **File upload** | `handlers.go` `HandleUploadTrack` | Multipart, format validation, DB insert |
+### 1. Database Integration — PostgreSQL
 
----
+**Where:** `internal/database/`
 
-## ❌ Not Yet Implemented (recommended to add)
+- `pgxpool` connection pool (10 max connections), auto-ping health check
+- Idempotent schema migrations on startup (`users`, `tracks`, `playlists`, `playlist_tracks`)
+- **Repository Pattern:** `UserRepo` + `TrackRepo` with parameterized queries (prevents SQL injection)
+- `TrackRepo.Upsert()` — `ON CONFLICT DO UPDATE` for idempotent background sync
+- `database.New()` runs migrations automatically — no manual SQL setup needed
 
-The following are explicitly listed in the Part 2 description and are **missing**:
-
-### 1. 🚦 Rate Limiting
-**What:** Limit requests per IP to prevent abuse (e.g., brute-force login attempts).
-**Go approach:** Token bucket per IP using a `sync.Map` of counters + `time.Ticker` cleanup goroutine.
-**Marks impact:** Directly mentioned in the spec, demonstrates concurrency + system design.
+**Why it improves the system:** Persistence across restarts, concurrent-safe queries via pgxpool, scalable to multiple users.
 
 ---
 
-### 2. 👷 Worker Pool
-**What:** A bounded pool of goroutines to process library scan jobs concurrently (instead of sequential loop).
-**Go approach:** Channel-based worker pool — N workers reading from a `jobs chan Track` and writing results to a `results chan`.
-**Marks impact:** Directly mentioned, demonstrates advanced goroutine patterns beyond basic `go func()`.
+### 2. JWT Authentication (custom implementation)
+
+**Where:** `internal/auth/jwt.go` · `internal/server/middleware.go`
+
+- Pure Go **HMAC-SHA256** signing — no external JWT library (`crypto/hmac` + `crypto/sha256`)
+- Claims: `sub` (username), `role`, `iat`, `exp` (expiry)
+- `AuthMiddleware` validates every protected route — injects `X-User` and `X-Role` headers
+- Token expiry check, signature verification, wrong-secret rejection
+- Tested in `TestJWTRoundtrip` (4/4 PASS)
+
+**Why it improves the system:** Stateless auth — no sessions to store, scales horizontally, role-based access is extensible.
 
 ---
 
-### 3. 🔤 Advanced String Manipulation
-**What:** The spec specifically calls for *parsing, validation, transformation*.
-**Currently missing:** No input validation beyond empty checks — no username format rules, no email validation, no string parsing beyond basic `strings.Split`.
-**Suggested implementation:**
-- Username validation: alphanumeric + underscore, 3–20 chars (`regexp`)
-- Search query sanitization and normalization (trim, lowercase, multi-word tokenization)
-- Track title/artist cleanup from filenames (strip underscores/hyphens, title-case)
+## 🔲 Other Contributor's 2 Features (To Be Implemented)
 
----
+Pick any 2 from below — all directly named in the Part 2 spec:
 
-### 4. 📊 Mathematical / Statistical Computations
-**What:** The spec calls for *statistical calculations, numeric processing, or algorithmic operations*.
-**Currently missing entirely.**
-**Suggested implementation:**
-- Library statistics endpoint: `GET /api/library/stats`
-  - Total tracks, total duration, average track length
-  - Most common genre, tracks per album distribution
-  - These require numeric aggregation and basic statistical ops (mean, mode)
+### Option A: Rate Limiting *(recommended)*
+Limit requests per IP to prevent brute-force login attacks. Token bucket per client IP stored in a `sync.Map`, with a cleanup goroutine using `time.Ticker`.
+- ~50 lines of code as a new middleware
+- Fits cleanly alongside `LoggingMiddleware` and `CORSMiddleware`
 
----
+### Option B: Worker Pool *(recommended)*
+Replace the sequential library scan loop with a bounded goroutine pool.
+- N workers reading from a `jobs chan` and writing results to a `results chan`
+- Demonstrates advanced channel/goroutine patterns
 
-## Recommendation: Implement in this order
+### Option C: Advanced String Manipulation
+- Username format validation: alphanumeric + underscore, 3–20 chars (regex)
+- Search query normalization: trim, lowercase, multi-word tokenization
+- Filename-to-title cleanup: strip underscores/hyphens, apply title-case
 
-| Priority | Feature | Effort | Marks Value |
-|---|---|---|---|
-| 1 | **Rate limiting** middleware | Low (~50 lines) | High — directly listed |
-| 2 | **String validation** (username, search) | Low (~30 lines) | High — directly listed |
-| 3 | **Library stats** endpoint (math) | Medium (~60 lines) | High — directly listed |
-| 4 | **Worker pool** for library scanning | Medium (~80 lines) | High — directly listed |
+### Option D: Library Statistics (Mathematical Computations)
+`GET /api/library/stats` endpoint returning:
+- Total tracks, total duration (sum)
+- Average track length (mean)
+- Most common genre (mode)
+- Tracks per album distribution
 
-All four can be implemented in a single session. Want me to implement them?
+**Suggestion for other contributor:** **Rate Limiting + Worker Pool** — both are directly named in the spec and showcase distinct skills (middleware vs goroutine patterns).
