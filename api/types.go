@@ -2,6 +2,25 @@ package api
 
 import "time"
 
+type AudioMode int
+
+const (
+	ModeNormal AudioMode = iota
+	ModeKaraoke
+	ModeVocals
+)
+
+func (m AudioMode) String() string {
+	switch m {
+	case ModeKaraoke:
+		return "karaoke"
+	case ModeVocals:
+		return "vocals"
+	default:
+		return "normal"
+	}
+}
+
 type Track struct {
 	ID        string        `json:"id"`
 	Title     string        `json:"title"`
@@ -44,14 +63,17 @@ const (
 
 // PlaybackState represents the current player state
 type PlaybackState struct {
-	CurrentTrack *Track        `json:"current_track"`
-	Status       PlayerStatus  `json:"status"`
-	Position     time.Duration `json:"position"`
-	Volume       float64       `json:"volume"` // 0.0 to 1.0
-	Repeat       RepeatMode    `json:"repeat"`
-	Shuffle      bool          `json:"shuffle"`
-	Queue        []*Track      `json:"queue"`
-	QueueIndex   int           `json:"queue_index"`
+	CurrentTrack  *Track        `json:"current_track"`
+	Status        PlayerStatus  `json:"status"`
+	Position      time.Duration `json:"position"`
+	Volume        float64       `json:"volume"` // 0.0 to 1.0
+	Mode          AudioMode     `json:"mode"`
+	TargetMode    AudioMode     `json:"target_mode"`
+	ModeSwitching bool          `json:"mode_switching"`
+	Repeat        RepeatMode    `json:"repeat"`
+	Shuffle       bool          `json:"shuffle"`
+	Queue         []*Track      `json:"queue"`
+	QueueIndex    int           `json:"queue_index"`
 }
 
 // CommandType enumerates audio commands
@@ -66,6 +88,8 @@ const (
 	CmdVolume
 	CmdNext
 	CmdPrevious
+	CmdSetMode
+	CmdApplyPreparedMode
 )
 
 // AudioCommand represents commands sent to the audio engine
@@ -99,5 +123,6 @@ type Player interface {
 	Stop() error
 	Seek(position time.Duration) error
 	SetVolume(level float64) error
+	SetMode(mode AudioMode) error
 	GetState() *PlaybackState
 }

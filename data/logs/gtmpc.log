@@ -1,0 +1,167 @@
+[2026-03-21 14:47:52.572] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-21 14:47:52.706] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-21 14:47:52.707] INFO  app.go:462 | Starting UI
+[2026-03-21 14:47:55.137] INFO  app.go:365 | User selected track: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 14:47:55.138] INFO  engine.go:82 | Play command received: "Pyramids.mp3" by Unknown Artist (/Users/dan/Music/Pyramids.mp3)
+[2026-03-21 14:47:55.191] INFO  engine.go:280 | Track started: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 14:47:57.009] INFO  stems.go:151 | Running Demucs separation for "Pyramids.mp3"
+[2026-03-21 14:47:59.686] INFO  engine.go:280 | Track started: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 14:48:09.474] INFO  engine.go:280 | Track started: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 14:48:10.901] INFO  engine.go:280 | Track started: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 14:48:13.933] INFO  engine.go:280 | Track started: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 14:48:31.660] INFO  app.go:469 | UI exited cleanly
+[2026-03-21 15:59:26.563] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-21 15:59:26.693] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-21 15:59:26.694] INFO  app.go:462 | Starting UI
+[2026-03-21 15:59:27.795] INFO  app.go:365 | User selected track: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 15:59:27.795] INFO  engine.go:82 | Play command received: "Pyramids.mp3" by Unknown Artist (/Users/dan/Music/Pyramids.mp3)
+[2026-03-21 15:59:27.850] INFO  engine.go:280 | Track started: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 15:59:28.764] INFO  stems.go:151 | Running Demucs separation for "Pyramids.mp3"
+[2026-03-21 15:59:43.160] INFO  engine.go:280 | Track started: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 15:59:53.787] INFO  app.go:469 | UI exited cleanly
+[2026-03-21 16:05:15.046] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-21 16:05:15.174] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-21 16:05:15.174] INFO  app.go:462 | Starting UI
+[2026-03-21 16:05:16.362] INFO  app.go:365 | User selected track: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 16:05:16.362] INFO  engine.go:82 | Play command received: "Pyramids.mp3" by Unknown Artist (/Users/dan/Music/Pyramids.mp3)
+[2026-03-21 16:05:16.417] INFO  engine.go:280 | Track started: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 16:05:34.545] INFO  stems.go:155 | Running Demucs separation for "Pyramids.mp3"
+[2026-03-21 16:05:49.628] INFO  engine.go:280 | Track started: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 16:07:13.342] INFO  app.go:469 | UI exited cleanly
+[2026-03-21 16:09:23.474] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-21 16:09:23.580] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-21 16:09:23.580] INFO  app.go:462 | Starting UI
+[2026-03-21 16:09:33.699] INFO  app.go:193 | Adding file to library: /Users/dan/Music/The Weeknd - Blinding Lights (Official Audio).mp3
+[2026-03-21 16:09:33.723] INFO  app.go:199 | Added track: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist
+[2026-03-21 16:09:35.946] INFO  app.go:365 | User selected track: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist
+[2026-03-21 16:09:35.947] INFO  engine.go:82 | Play command received: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist (/Users/dan/Music/The Weeknd - Blinding Lights (Official Audio).mp3)
+[2026-03-21 16:09:35.971] INFO  engine.go:280 | Track started: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist
+[2026-03-21 16:09:47.120] INFO  stems.go:155 | Running Demucs separation for "The Weeknd - Blinding Lights (Official Audio).mp3"
+[2026-03-21 16:09:55.148] INFO  engine.go:280 | Track started: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist
+[2026-03-21 16:10:00.973] INFO  engine.go:280 | Track started: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist
+[2026-03-21 16:10:29.272] INFO  engine.go:280 | Track started: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist
+[2026-03-21 16:10:31.844] INFO  app.go:469 | UI exited cleanly
+[2026-03-21 16:20:38.411] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-21 16:20:38.536] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-21 16:20:38.536] INFO  app.go:477 | Starting UI
+[2026-03-21 16:20:39.986] INFO  app.go:370 | User selected track: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 16:20:39.987] INFO  engine.go:82 | Play command received: "Pyramids.mp3" by Unknown Artist (/Users/dan/Music/Pyramids.mp3)
+[2026-03-21 16:20:40.041] INFO  engine.go:280 | Track started: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 16:20:44.470] INFO  app.go:370 | User selected track: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist
+[2026-03-21 16:20:44.470] INFO  engine.go:82 | Play command received: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist (/Users/dan/Music/The Weeknd - Blinding Lights (Official Audio).mp3)
+[2026-03-21 16:20:44.494] INFO  engine.go:280 | Track started: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist
+[2026-03-21 16:22:55.203] INFO  app.go:370 | User selected track: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist
+[2026-03-21 16:22:55.203] INFO  engine.go:82 | Play command received: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist (/Users/dan/Music/The Weeknd - Blinding Lights (Official Audio).mp3)
+[2026-03-21 16:22:55.227] INFO  engine.go:280 | Track started: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist
+[2026-03-21 16:22:57.163] INFO  app.go:370 | User selected track: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist
+[2026-03-21 16:22:57.164] INFO  engine.go:82 | Play command received: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist (/Users/dan/Music/The Weeknd - Blinding Lights (Official Audio).mp3)
+[2026-03-21 16:22:57.188] INFO  engine.go:280 | Track started: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist
+[2026-03-21 16:23:04.414] INFO  stems.go:155 | Running Demucs separation for "The Weeknd - Blinding Lights (Official Audio).mp3"
+[2026-03-21 16:23:07.082] INFO  engine.go:280 | Track started: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist
+[2026-03-21 16:23:10.358] INFO  engine.go:280 | Track started: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist
+[2026-03-21 16:23:26.799] INFO  app.go:484 | UI exited cleanly
+[2026-03-21 16:23:57.524] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-21 16:23:57.657] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-21 16:23:57.657] INFO  app.go:477 | Starting UI
+[2026-03-21 16:24:00.434] INFO  app.go:370 | User selected track: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 16:24:00.435] INFO  engine.go:82 | Play command received: "Pyramids.mp3" by Unknown Artist (/Users/dan/Music/Pyramids.mp3)
+[2026-03-21 16:24:00.488] INFO  engine.go:280 | Track started: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 16:24:01.797] INFO  stems.go:155 | Running Demucs separation for "Pyramids.mp3"
+[2026-03-21 16:24:02.920] INFO  engine.go:280 | Track started: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 16:24:03.533] INFO  app.go:484 | UI exited cleanly
+[2026-03-21 16:24:11.668] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-21 16:24:11.775] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-21 16:24:11.775] INFO  app.go:477 | Starting UI
+[2026-03-21 16:24:12.570] INFO  app.go:370 | User selected track: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 16:24:12.570] INFO  engine.go:82 | Play command received: "Pyramids.mp3" by Unknown Artist (/Users/dan/Music/Pyramids.mp3)
+[2026-03-21 16:24:12.623] INFO  engine.go:280 | Track started: "Pyramids.mp3" by Unknown Artist
+[2026-03-21 16:24:18.198] INFO  app.go:370 | User selected track: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist
+[2026-03-21 16:24:18.200] INFO  engine.go:82 | Play command received: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist (/Users/dan/Music/The Weeknd - Blinding Lights (Official Audio).mp3)
+[2026-03-21 16:24:18.225] INFO  engine.go:280 | Track started: "The Weeknd - Blinding Lights (Official Audio).mp3" by Unknown Artist
+[2026-03-21 16:24:21.167] INFO  app.go:484 | UI exited cleanly
+[2026-03-21 16:34:13.489] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-21 16:34:13.614] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-21 16:34:13.614] INFO  app.go:477 | Starting UI
+[2026-03-21 16:34:41.691] INFO  app.go:484 | UI exited cleanly
+[2026-03-21 16:34:55.654] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-21 16:34:55.779] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-21 16:34:55.779] INFO  app.go:477 | Starting UI
+[2026-03-21 16:35:09.414] INFO  app.go:484 | UI exited cleanly
+[2026-03-21 16:44:17.286] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-21 16:44:17.407] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-21 16:44:17.407] INFO  app.go:477 | Starting UI
+[2026-03-21 16:44:30.324] INFO  app.go:194 | Adding file to library: /Users/dan/Music/Deftones - My Own Summer (Shove It).flac
+[2026-03-21 16:44:30.325] INFO  app.go:200 | Added track: "My Own Summer (Shove It)" by Deftones
+[2026-03-21 16:44:34.175] INFO  app.go:370 | User selected track: "My Own Summer (Shove It)" by Deftones
+[2026-03-21 16:44:34.176] INFO  engine.go:82 | Play command received: "My Own Summer (Shove It)" by Deftones (/Users/dan/Music/Deftones - My Own Summer (Shove It).flac)
+[2026-03-21 16:44:34.176] INFO  engine.go:280 | Track started: "My Own Summer (Shove It)" by Deftones
+[2026-03-21 16:44:44.132] INFO  app.go:484 | UI exited cleanly
+[2026-03-21 16:45:08.286] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-21 16:45:08.386] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-21 16:45:08.386] INFO  app.go:477 | Starting UI
+[2026-03-21 16:45:12.148] INFO  app.go:370 | User selected track: "My Own Summer (Shove It)" by Deftones
+[2026-03-21 16:45:12.173] INFO  engine.go:82 | Play command received: "My Own Summer (Shove It)" by Deftones (/Users/dan/Music/Deftones - My Own Summer (Shove It).flac)
+[2026-03-21 16:45:12.174] INFO  engine.go:280 | Track started: "My Own Summer (Shove It)" by Deftones
+[2026-03-21 16:45:16.696] INFO  stems.go:155 | Running Demucs separation for "My Own Summer (Shove It)"
+[2026-03-21 16:45:33.089] INFO  engine.go:280 | Track started: "My Own Summer (Shove It)" by Deftones
+[2026-03-21 16:45:34.455] INFO  app.go:484 | UI exited cleanly
+[2026-03-21 16:45:38.913] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-21 16:45:39.018] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-21 16:45:39.019] INFO  app.go:477 | Starting UI
+[2026-03-21 16:45:40.412] INFO  app.go:370 | User selected track: "My Own Summer (Shove It)" by Deftones
+[2026-03-21 16:45:40.412] INFO  engine.go:82 | Play command received: "My Own Summer (Shove It)" by Deftones (/Users/dan/Music/Deftones - My Own Summer (Shove It).flac)
+[2026-03-21 16:45:40.413] INFO  engine.go:280 | Track started: "My Own Summer (Shove It)" by Deftones
+[2026-03-21 16:45:50.453] INFO  stems.go:155 | Running Demucs separation for "My Own Summer (Shove It)"
+[2026-03-21 16:48:45.609] INFO  app.go:484 | UI exited cleanly
+[2026-03-21 16:48:57.566] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-21 16:48:57.695] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-21 16:48:57.695] INFO  app.go:477 | Starting UI
+[2026-03-21 16:49:03.223] INFO  app.go:370 | User selected track: "My Own Summer (Shove It)" by Deftones
+[2026-03-21 16:49:03.265] INFO  engine.go:82 | Play command received: "My Own Summer (Shove It)" by Deftones (/Users/dan/Music/Deftones - My Own Summer (Shove It).flac)
+[2026-03-21 16:49:03.266] INFO  engine.go:280 | Track started: "My Own Summer (Shove It)" by Deftones
+[2026-03-21 16:49:13.320] INFO  app.go:484 | UI exited cleanly
+[2026-03-21 16:49:17.356] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-21 16:49:17.473] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-21 16:49:17.474] INFO  app.go:477 | Starting UI
+[2026-03-21 16:49:23.360] INFO  app.go:370 | User selected track: "My Own Summer (Shove It)" by Deftones
+[2026-03-21 16:49:23.361] INFO  engine.go:82 | Play command received: "My Own Summer (Shove It)" by Deftones (/Users/dan/Music/Deftones - My Own Summer (Shove It).flac)
+[2026-03-21 16:49:23.362] INFO  engine.go:280 | Track started: "My Own Summer (Shove It)" by Deftones
+[2026-03-21 16:49:54.578] INFO  app.go:484 | UI exited cleanly
+[2026-03-21 16:53:13.919] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-21 16:53:14.048] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-21 16:53:14.049] INFO  app.go:477 | Starting UI
+[2026-03-21 16:53:15.136] INFO  app.go:370 | User selected track: "My Own Summer (Shove It)" by Deftones
+[2026-03-21 16:53:15.138] INFO  engine.go:82 | Play command received: "My Own Summer (Shove It)" by Deftones (/Users/dan/Music/Deftones - My Own Summer (Shove It).flac)
+[2026-03-21 16:53:15.138] INFO  engine.go:280 | Track started: "My Own Summer (Shove It)" by Deftones
+[2026-03-21 16:53:21.592] INFO  app.go:484 | UI exited cleanly
+[2026-03-21 16:53:31.241] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-21 16:53:31.339] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-21 16:53:31.340] INFO  app.go:477 | Starting UI
+[2026-03-21 16:53:32.243] INFO  app.go:370 | User selected track: "My Own Summer (Shove It)" by Deftones
+[2026-03-21 16:53:32.268] INFO  engine.go:82 | Play command received: "My Own Summer (Shove It)" by Deftones (/Users/dan/Music/Deftones - My Own Summer (Shove It).flac)
+[2026-03-21 16:53:32.269] INFO  engine.go:280 | Track started: "My Own Summer (Shove It)" by Deftones
+[2026-03-23 00:05:44.622] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-23 00:05:44.732] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-23 00:05:44.734] INFO  app.go:477 | Starting UI
+[2026-03-23 00:05:46.362] INFO  app.go:370 | User selected track: "My Own Summer (Shove It)" by Deftones
+[2026-03-23 00:05:46.388] INFO  engine.go:82 | Play command received: "My Own Summer (Shove It)" by Deftones (/Users/dan/Music/Deftones - My Own Summer (Shove It).flac)
+[2026-03-23 00:05:46.388] INFO  engine.go:280 | Track started: "My Own Summer (Shove It)" by Deftones
+[2026-03-23 00:05:59.963] INFO  app.go:484 | UI exited cleanly
+[2026-03-23 00:06:22.648] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-23 00:06:22.743] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-23 00:06:22.743] INFO  app.go:477 | Starting UI
+[2026-03-23 00:06:27.779] INFO  app.go:370 | User selected track: "My Own Summer (Shove It)" by Deftones
+[2026-03-23 00:06:27.804] INFO  engine.go:82 | Play command received: "My Own Summer (Shove It)" by Deftones (/Users/dan/Music/Deftones - My Own Summer (Shove It).flac)
+[2026-03-23 00:06:27.805] INFO  engine.go:280 | Track started: "My Own Summer (Shove It)" by Deftones
+[2026-03-23 00:06:40.679] INFO  stems.go:155 | Running Demucs separation for "My Own Summer (Shove It)"
+[2026-03-23 00:07:07.461] INFO  app.go:484 | UI exited cleanly
+[2026-03-27 09:10:35.640] INFO  logger.go:72 | Logger initialized (log_dir=data/logs, level=INFO)
+[2026-03-27 09:10:35.756] INFO  engine.go:60 | Audio engine started (sample_rate=44100)
+[2026-03-27 09:10:35.758] INFO  app.go:477 | Starting UI
+[2026-03-27 09:10:42.407] INFO  app.go:370 | User selected track: "My Own Summer (Shove It)" by Deftones
+[2026-03-27 09:10:42.439] INFO  engine.go:82 | Play command received: "My Own Summer (Shove It)" by Deftones (/Users/dan/Music/Deftones - My Own Summer (Shove It).flac)
+[2026-03-27 09:10:42.439] INFO  engine.go:280 | Track started: "My Own Summer (Shove It)" by Deftones
+[2026-03-27 09:10:46.688] INFO  app.go:370 | User selected track: "My Own Summer (Shove It)" by Deftones
+[2026-03-27 09:10:46.688] INFO  engine.go:82 | Play command received: "My Own Summer (Shove It)" by Deftones (/Users/dan/Music/Deftones - My Own Summer (Shove It).flac)
+[2026-03-27 09:10:46.688] INFO  engine.go:280 | Track started: "My Own Summer (Shove It)" by Deftones
+[2026-03-27 09:10:52.998] INFO  app.go:484 | UI exited cleanly

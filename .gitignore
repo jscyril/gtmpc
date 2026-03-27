@@ -33,3 +33,8 @@ DESIGN.md
 
 # .idea/
 # .vscode/
+.DS_Store
+gtmpc
+data/library.json
+data/stems/
+.tools/

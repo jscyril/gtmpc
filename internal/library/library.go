@@ -98,6 +98,31 @@ func (l *Library) GetAllTracks() []*api.Track {
 	return tracks
 }
 
+// EnsureCoverArt loads embedded cover art for the track if it is not already present.
+// If the track also exists in the library map, both references are updated.
+func (l *Library) EnsureCoverArt(track *api.Track) error {
+	if track == nil || len(track.CoverArt) > 0 || track.FilePath == "" {
+		return nil
+	}
+
+	art, err := l.scanner.metaReader.ReadCoverArt(track.FilePath)
+	if err != nil {
+		return err
+	}
+	if len(art) == 0 {
+		return nil
+	}
+
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	track.CoverArt = append([]byte(nil), art...)
+	if stored, ok := l.Tracks[track.ID]; ok && stored != nil && len(stored.CoverArt) == 0 {
+		stored.CoverArt = append([]byte(nil), art...)
+	}
+	return nil
+}
+
 // GetTracksByArtist returns all tracks by a specific artist
 func (l *Library) GetTracksByArtist(artist string) []*api.Track {
 	l.mu.RLock()
@@ -310,6 +335,40 @@ func LoadLibrary(path string) (*Library, error) {
 	lib.rebuildIndices()
 
 	return &lib, nil
+}
+
+// PruneMissingTracks removes library entries whose backing audio files no longer exist.
+func (l *Library) PruneMissingTracks() int {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	removed := 0
+	for id, track := range l.Tracks {
+		if track == nil || track.FilePath == "" {
+			l.removeTrackLocked(id, track)
+			removed++
+			continue
+		}
+
+		if _, err := os.Stat(track.FilePath); err != nil {
+			if os.IsNotExist(err) {
+				l.removeTrackLocked(id, track)
+				removed++
+			}
+		}
+	}
+
+	l.TotalTracks = len(l.Tracks)
+	return removed
+}
+
+func (l *Library) removeTrackLocked(id string, track *api.Track) {
+	if track != nil {
+		l.removeFromIndex(l.artistIndex, track.Artist, id)
+		l.removeFromIndex(l.albumIndex, track.Album, id)
+		l.removeFromIndex(l.genreIndex, track.Genre, id)
+	}
+	delete(l.Tracks, id)
 }
 
 // rebuildIndices rebuilds the secondary indices from the tracks map

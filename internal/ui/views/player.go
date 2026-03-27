@@ -117,9 +117,26 @@ func (v *PlayerView) View() string {
 		sb.WriteString(v.ProgressBar.View())
 		sb.WriteString("\n\n")
 
+		artWidth := 22
+		if v.Width > 0 && artWidth > v.Width-12 {
+			artWidth = v.Width - 12
+		}
+		if artWidth >= 8 {
+			if art := components.RenderAlbumArt(track.CoverArt, artWidth, 8); art != "" {
+				sb.WriteString(art)
+				sb.WriteString("\n\n")
+			}
+		}
+
 		// Volume
 		volumeBar := renderVolumeBar(v.State.Volume)
 		sb.WriteString(fmt.Sprintf("Volume: %s %d%%", volumeBar, int(v.State.Volume*100)))
+		sb.WriteString("\n")
+		modeLabel := strings.ToUpper(v.State.Mode.String())
+		if v.State.ModeSwitching {
+			modeLabel = fmt.Sprintf("%s -> %s (switching)", modeLabel, strings.ToUpper(v.State.TargetMode.String()))
+		}
+		sb.WriteString(fmt.Sprintf("Audio Mode: %s", modeLabel))
 		sb.WriteString("\n")
 
 		// Repeat/Shuffle status
@@ -140,7 +157,7 @@ func (v *PlayerView) View() string {
 
 	sb.WriteString("\n\n")
 	sb.WriteString(v.ControlsStyle.Render(
-		"[Space] Play/Pause  [s] Stop  [n] Next  [p] Prev  [←/→] Seek ±5s  [+/-] Volume  [q] Quit",
+		"[Space] Play/Pause  [s] Stop  [n] Next  [p] Prev  [m] Mode  [←/→] Seek ±5s  [+/-] Volume  [q] Quit",
 	))
 
 	return v.BorderStyle.Width(v.Width - 4).Render(sb.String())

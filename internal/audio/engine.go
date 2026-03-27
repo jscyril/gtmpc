@@ -21,6 +21,8 @@ type AudioEngine struct {
 	state      *api.PlaybackState
 	commands   chan api.AudioCommand
 	events     chan api.AudioEvent
+	stemCache  *StemCache
+	modeReqID  uint64
 	mu         sync.RWMutex
 	streamer   beep.StreamSeekCloser
 	ctrl       *beep.Ctrl
@@ -31,16 +33,19 @@ type AudioEngine struct {
 	trackRate  beep.SampleRate // current track's native sample rate
 }
 
-func NewAudioEngine() *AudioEngine {
+func NewAudioEngine(stemCache *StemCache) *AudioEngine {
 	return &AudioEngine{
 		state: &api.PlaybackState{
-			Status: api.StatusStopped,
-			Volume: 0.5,
-			Repeat: api.RepeatNone,
+			Status:     api.StatusStopped,
+			Volume:     0.5,
+			Mode:       api.ModeNormal,
+			TargetMode: api.ModeNormal,
+			Repeat:     api.RepeatNone,
 		},
-		commands: make(chan api.AudioCommand, 10),
-		events:   make(chan api.AudioEvent, 20),
-		done:     make(chan struct{}),
+		commands:  make(chan api.AudioCommand, 10),
+		events:    make(chan api.AudioEvent, 20),
+		done:      make(chan struct{}),
+		stemCache: stemCache,
 	}
 }
 
@@ -72,6 +77,7 @@ func (e *AudioEngine) run(ctx context.Context) {
 		case cmd := <-e.commands:
 			switch cmd.Type {
 			case api.CmdPlay:
+				e.cancelModeSwitch()
 				track := cmd.Payload.(*api.Track)
 				logger.Info("Play command received: %q by %s (%s)", track.Title, track.Artist, track.FilePath)
 				if err := e.playTrack(track); err != nil {
@@ -103,6 +109,7 @@ func (e *AudioEngine) run(ctx context.Context) {
 				e.events <- api.AudioEvent{Type: api.EventStateChange, Payload: e.state}
 
 			case api.CmdStop:
+				e.cancelModeSwitch()
 				e.stopPlayback()
 				e.events <- api.AudioEvent{Type: api.EventStateChange, Payload: e.state}
 
@@ -121,9 +128,31 @@ func (e *AudioEngine) run(ctx context.Context) {
 			case api.CmdSeek:
 				pos := cmd.Payload.(time.Duration)
 				e.seekTo(pos)
+
+			case api.CmdSetMode:
+				mode := cmd.Payload.(api.AudioMode)
+				if err := e.requestModeChange(mode); err != nil {
+					logger.Error("Failed to switch audio mode: %v", err)
+					e.events <- api.AudioEvent{Type: api.EventError, Payload: err}
+				}
+
+			case api.CmdApplyPreparedMode:
+				result := cmd.Payload.(modeSwitchResult)
+				if err := e.applyPreparedMode(result); err != nil {
+					logger.Error("Failed to apply prepared mode: %v", err)
+					e.events <- api.AudioEvent{Type: api.EventError, Payload: err}
+				}
 			}
 		}
 	}
+}
+
+type modeSwitchResult struct {
+	requestID  uint64
+	trackID    string
+	mode       api.AudioMode
+	sourcePath string
+	err        error
 }
 
 func (e *AudioEngine) trackPosition(ctx context.Context) {
@@ -158,19 +187,31 @@ func (e *AudioEngine) trackPosition(ctx context.Context) {
 }
 
 func (e *AudioEngine) playTrack(track *api.Track) error {
-	logger.Debug("Stopping previous playback before starting new track")
-	e.stopPlayback()
+	e.mu.RLock()
+	mode := e.state.Mode
+	e.mu.RUnlock()
+	return e.startTrack(track, mode, 0, false)
+}
 
-	file, err := os.Open(track.FilePath)
+func (e *AudioEngine) startTrack(track *api.Track, mode api.AudioMode, position time.Duration, paused bool) error {
+	sourcePath, err := e.resolveSource(track, mode)
 	if err != nil {
-		logger.Error("Failed to open file %s: %v", track.FilePath, err)
+		return playerrors.NewPlayerError("resolve_mode", track.ID, err)
+	}
+	return e.startTrackFromSource(track, mode, sourcePath, position, paused)
+}
+
+func (e *AudioEngine) startTrackFromSource(track *api.Track, mode api.AudioMode, sourcePath string, position time.Duration, paused bool) error {
+	file, err := os.Open(sourcePath)
+	if err != nil {
+		logger.Error("Failed to open file %s: %v", sourcePath, err)
 		return playerrors.NewPlayerError("open", track.ID, err)
 	}
 
-	streamer, format, err := DecodeAudio(file, track.FilePath)
+	streamer, format, err := DecodeAudio(file, sourcePath)
 	if err != nil {
 		file.Close()
-		logger.Error("Failed to decode %s: %v", track.FilePath, err)
+		logger.Error("Failed to decode %s: %v", sourcePath, err)
 		return playerrors.NewPlayerError("decode", track.ID, err)
 	}
 
@@ -184,11 +225,30 @@ func (e *AudioEngine) playTrack(track *api.Track) error {
 		src = beep.Resample(4, format.SampleRate, e.sampleRate, streamer)
 	}
 
+	actualPos := time.Duration(0)
+	if position > 0 && format.SampleRate > 0 && streamer.Len() > 0 {
+		target := format.SampleRate.N(position)
+		if target >= streamer.Len() {
+			target = streamer.Len() - 1
+		}
+		if target < 0 {
+			target = 0
+		}
+		if err := streamer.Seek(target); err != nil {
+			logger.Error("Failed to seek track %q to %s: %v", track.Title, position, err)
+		} else {
+			actualPos = format.SampleRate.D(target)
+		}
+	}
+
+	logger.Debug("Stopping previous playback before starting new track")
+	e.stopPlayback()
+
 	e.mu.Lock()
 	e.streamer = streamer
 	e.format = format
 	e.trackRate = format.SampleRate
-	e.ctrl = &beep.Ctrl{Streamer: src, Paused: false}
+	e.ctrl = &beep.Ctrl{Streamer: src, Paused: paused}
 	e.volume = &effects.Volume{
 		Streamer: e.ctrl,
 		Base:     2,
@@ -201,8 +261,15 @@ func (e *AudioEngine) playTrack(track *api.Track) error {
 	if track.Duration == 0 && format.SampleRate > 0 && streamer.Len() > 0 {
 		track.Duration = format.SampleRate.D(streamer.Len())
 	}
-	e.state.Status = api.StatusPlaying
-	e.state.Position = 0
+	if paused {
+		e.state.Status = api.StatusPaused
+	} else {
+		e.state.Status = api.StatusPlaying
+	}
+	e.state.Mode = mode
+	e.state.TargetMode = mode
+	e.state.ModeSwitching = false
+	e.state.Position = actualPos
 	e.mu.Unlock()
 
 	speaker.Play(beep.Seq(e.volume, beep.Callback(func() {
@@ -213,6 +280,16 @@ func (e *AudioEngine) playTrack(track *api.Track) error {
 	logger.Info("Track started: %q by %s", track.Title, track.Artist)
 	e.events <- api.AudioEvent{Type: api.EventTrackStarted, Payload: track}
 	return nil
+}
+
+func (e *AudioEngine) resolveSource(track *api.Track, mode api.AudioMode) (string, error) {
+	if e.stemCache == nil {
+		if mode != api.ModeNormal {
+			return "", fmt.Errorf("audio mode cache is not configured")
+		}
+		return track.FilePath, nil
+	}
+	return e.stemCache.Resolve(track, mode)
 }
 
 func (e *AudioEngine) stopPlayback() {
@@ -294,6 +371,119 @@ func (e *AudioEngine) SetVolume(level float64) error {
 	}
 	e.commands <- api.AudioCommand{Type: api.CmdVolume, Payload: level}
 	return nil
+}
+
+func (e *AudioEngine) SetMode(mode api.AudioMode) error {
+	if mode < api.ModeNormal || mode > api.ModeVocals {
+		return fmt.Errorf("invalid audio mode: %d", mode)
+	}
+	e.commands <- api.AudioCommand{Type: api.CmdSetMode, Payload: mode}
+	return nil
+}
+
+func (e *AudioEngine) requestModeChange(mode api.AudioMode) error {
+	e.mu.RLock()
+	currentTarget := e.state.TargetMode
+	var track *api.Track
+	if e.state.CurrentTrack != nil {
+		cloned := *e.state.CurrentTrack
+		track = &cloned
+	}
+	e.mu.RUnlock()
+
+	if currentTarget == mode {
+		return nil
+	}
+
+	if track == nil {
+		e.mu.Lock()
+		e.state.Mode = mode
+		e.state.TargetMode = mode
+		e.state.ModeSwitching = false
+		e.modeReqID++
+		e.mu.Unlock()
+		e.events <- api.AudioEvent{Type: api.EventStateChange, Payload: e.GetState()}
+		return nil
+	}
+
+	if mode == api.ModeNormal {
+		e.cancelModeSwitch()
+		e.mu.RLock()
+		position := e.state.Position
+		status := e.state.Status
+		e.mu.RUnlock()
+		return e.startTrack(track, mode, position, status == api.StatusPaused)
+	}
+
+	e.mu.Lock()
+	e.modeReqID++
+	reqID := e.modeReqID
+	e.state.TargetMode = mode
+	e.state.ModeSwitching = true
+	e.mu.Unlock()
+	e.events <- api.AudioEvent{Type: api.EventStateChange, Payload: e.GetState()}
+
+	go func(track *api.Track, target api.AudioMode, requestID uint64) {
+		sourcePath, err := e.resolveSource(track, target)
+		e.commands <- api.AudioCommand{
+			Type: api.CmdApplyPreparedMode,
+			Payload: modeSwitchResult{
+				requestID:  requestID,
+				trackID:    track.ID,
+				mode:       target,
+				sourcePath: sourcePath,
+				err:        err,
+			},
+		}
+	}(track, mode, reqID)
+
+	return nil
+}
+
+func (e *AudioEngine) applyPreparedMode(result modeSwitchResult) error {
+	e.mu.RLock()
+	currentReqID := e.modeReqID
+	status := e.state.Status
+	position := e.state.Position
+	targetMode := e.state.TargetMode
+	var track *api.Track
+	if e.state.CurrentTrack != nil {
+		cloned := *e.state.CurrentTrack
+		track = &cloned
+	}
+	e.mu.RUnlock()
+
+	if result.requestID != currentReqID || targetMode != result.mode {
+		return nil
+	}
+
+	if result.err != nil {
+		e.mu.Lock()
+		e.state.ModeSwitching = false
+		e.state.TargetMode = e.state.Mode
+		e.mu.Unlock()
+		e.events <- api.AudioEvent{Type: api.EventStateChange, Payload: e.GetState()}
+		return playerrors.NewPlayerError("resolve_mode", result.trackID, result.err)
+	}
+
+	if track == nil || track.ID != result.trackID || status == api.StatusStopped {
+		e.mu.Lock()
+		e.state.ModeSwitching = false
+		e.state.TargetMode = e.state.Mode
+		e.mu.Unlock()
+		e.events <- api.AudioEvent{Type: api.EventStateChange, Payload: e.GetState()}
+		return nil
+	}
+
+	return e.startTrackFromSource(track, result.mode, result.sourcePath, position, status == api.StatusPaused)
+}
+
+func (e *AudioEngine) cancelModeSwitch() {
+	e.mu.Lock()
+	e.modeReqID++
+	e.state.ModeSwitching = false
+	e.state.TargetMode = e.state.Mode
+	e.mu.Unlock()
 }
 
 func (e *AudioEngine) GetState() *api.PlaybackState {

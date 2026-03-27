@@ -11,6 +11,7 @@ import (
 	"github.com/jscyril/golang_music_player/internal/audio"
 	"github.com/jscyril/golang_music_player/internal/config"
 	"github.com/jscyril/golang_music_player/internal/library"
+	"github.com/jscyril/golang_music_player/internal/logger"
 	"github.com/jscyril/golang_music_player/internal/playlist"
 	"github.com/jscyril/golang_music_player/internal/ui"
 )
@@ -34,6 +35,11 @@ func run() error {
 	if err := os.MkdirAll(cfg.DataDir, 0755); err != nil {
 		return fmt.Errorf("create data directory: %w", err)
 	}
+	if err := logger.Init(filepath.Join(cfg.DataDir, "logs"), logger.INFO); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: init logger: %v\n", err)
+	} else {
+		defer logger.Close()
+	}
 
 	// Setup context with graceful shutdown
 	ctx, cancel := context.WithCancel(context.Background())
@@ -48,7 +54,7 @@ func run() error {
 	}()
 
 	// Initialize audio engine
-	audioEngine := audio.NewAudioEngine()
+	audioEngine := audio.NewAudioEngine(audio.NewStemCache(filepath.Join(cfg.DataDir, "stems")))
 	audioEngine.Start(ctx)
 
 	// Load persisted library (or create empty)
@@ -56,6 +62,9 @@ func run() error {
 	lib, err := library.LoadLibrary(libraryPath)
 	if err != nil {
 		return fmt.Errorf("load library: %w", err)
+	}
+	if removed := lib.PruneMissingTracks(); removed > 0 {
+		fmt.Printf("Pruned %d missing tracks from library cache\n", removed)
 	}
 	fmt.Printf("Loaded %d tracks from library\n", lib.TotalTracks)
 

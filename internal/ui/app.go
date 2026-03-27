@@ -63,6 +63,10 @@ type StateUpdateMsg struct {
 	State *api.PlaybackState
 }
 
+type ErrorMsg struct {
+	Err error
+}
+
 // TrackEndedMsg is sent when a track finishes playing
 type TrackEndedMsg struct{}
 
@@ -95,9 +99,9 @@ func NewModel(engine *audio.AudioEngine, lib *library.Library, plManager *playli
 	}
 
 	// Initialize views
-	m.playerView = views.NewPlayerView(m.width, m.height/3)
-	m.libraryView = views.NewLibraryView(m.width, m.height-10)
-	m.playlistView = views.NewPlaylistView(m.width, m.height-10)
+	m.playerView = views.NewPlayerView(m.width, 18)
+	m.libraryView = views.NewLibraryView(m.width, m.height-20)
+	m.playlistView = views.NewPlaylistView(m.width, m.height-20)
 
 	// Load library tracks into view
 	m.libraryView.SetTracks(lib.GetAllTracks())
@@ -134,7 +138,10 @@ func (m Model) listenForEvents() tea.Cmd {
 			case api.EventTrackEnded:
 				return TrackEndedMsg{}
 			case api.EventError:
-				return StateUpdateMsg{State: m.audioEngine.GetState()}
+				if err, ok := event.Payload.(error); ok {
+					return ErrorMsg{Err: err}
+				}
+				return ErrorMsg{Err: fmt.Errorf("audio error")}
 			}
 		case <-m.ctx.Done():
 			return nil
@@ -160,7 +167,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, tickCmd())
 
 	case StateUpdateMsg:
+		m.err = nil
 		m.playerView.SetState(msg.State)
+		cmds = append(cmds, m.listenForEvents())
+
+	case ErrorMsg:
+		m.err = msg.Err
 		cmds = append(cmds, m.listenForEvents())
 
 	case TrackEndedMsg:
@@ -168,6 +180,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		logger.Debug("TrackEndedMsg received, advancing to next track")
 		if next := m.queue.Next(); next != nil {
 			logger.Info("Auto-advancing to next track: %q", next.Title)
+			m.ensureTrackAssets(next)
 			m.audioEngine.Play(next)
 		} else {
 			logger.Info("Queue exhausted, no next track")
@@ -198,7 +211,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cancel()
 				return m, tea.Quit
 			default:
-				m.libraryView, _ = m.libraryView.Update(msg)
+				var cmd tea.Cmd
+				m.libraryView, cmd = m.libraryView.Update(msg)
+				if cmd != nil {
+					cmds = append(cmds, cmd)
+				}
 				return m, tea.Batch(cmds...)
 			}
 		}
@@ -229,7 +246,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.audioEngine.Resume()
 			} else if m.queue.Current() != nil {
 				logger.Debug("User started playback from stopped state")
-				m.audioEngine.Play(m.queue.Current())
+				current := m.queue.Current()
+				m.ensureTrackAssets(current)
+				m.audioEngine.Play(current)
 			}
 
 		case "s": // Stop
@@ -239,12 +258,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "n": // Next
 			if next := m.queue.Next(); next != nil {
 				logger.Info("User skipped to next track: %q", next.Title)
+				m.ensureTrackAssets(next)
 				m.audioEngine.Play(next)
 			}
 
 		case "p": // Previous (only in player view)
 			if m.activeView == ViewPlayer {
 				if prev := m.queue.Previous(); prev != nil {
+					m.ensureTrackAssets(prev)
 					m.audioEngine.Play(prev)
 				}
 			}
@@ -284,6 +305,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				newVol = 0
 			}
 			m.audioEngine.SetVolume(newVol)
+
+		case "m": // Cycle audio mode
+			state := m.audioEngine.GetState()
+			baseMode := state.Mode
+			if state.ModeSwitching {
+				baseMode = state.TargetMode
+			}
+			nextMode := (baseMode + 1) % 3
+			if err := m.audioEngine.SetMode(nextMode); err != nil {
+				m.err = err
+			}
 
 		case "r": // Toggle repeat
 			mode := m.queue.GetRepeatMode()
@@ -336,6 +368,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			if track != nil {
 				logger.Info("User selected track: %q by %s", track.Title, track.Artist)
+				m.ensureTrackAssets(track)
 				m.audioEngine.Play(track)
 			}
 
@@ -374,11 +407,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // updateViewSizes updates view dimensions
 func (m *Model) updateViewSizes() {
 	m.playerView.Width = m.width
-	m.playerView.Height = 10
+	m.playerView.Height = 18
 	m.libraryView.Width = m.width
-	m.libraryView.Height = m.height - 12
+	m.libraryView.Height = m.height - 20
 	m.playlistView.Width = m.width
-	m.playlistView.Height = m.height - 12
+	m.playlistView.Height = m.height - 20
+}
+
+func (m *Model) ensureTrackAssets(track *api.Track) {
+	if track == nil {
+		return
+	}
+	if err := m.library.EnsureCoverArt(track); err != nil {
+		logger.Warn("Failed to load cover art for %q: %v", track.Title, err)
+	}
 }
 
 // View renders the UI

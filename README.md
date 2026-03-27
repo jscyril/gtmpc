@@ -15,6 +15,7 @@ A robust, terminal-based music player application developed in Go. It offers a f
   - Standard transport controls (Play, Pause, Stop, Next, Previous).
   - Seek functionality.
   - Volume control.
+  - Audio mode switching between normal, karaoke, and vocals-focused playback.
   - Shuffle and Repeat modes.
 - **File Browser:** Integrated file system navigation to locate and add tracks manually.
 - **Mouse Support:** functionality for navigation and timeline seeking.
@@ -25,6 +26,7 @@ A robust, terminal-based music player application developed in Go. It offers a f
 
 - Go 1.25 or higher
 - Audio dependencies (on Linux, `libasound2-dev` is often required for the underlying audio library).
+- `ffmpeg` for cached karaoke/vocals mode generation.
 
 ### Build from Source
 
@@ -68,8 +70,18 @@ On the first run, the application will initialize its configuration and data dir
 - `Left Arrow`: Seek backward 5 seconds.
 - `+` / `=`: Increase volume.
 - `-`: Decrease volume.
+- `m`: Cycle audio mode (`normal` → `karaoke` → `vocals`).
 - `S`: Toggle Shuffle mode.
 - `r`: Cycle Repeat modes (Off, One, All).
+
+### Karaoke / Vocals Mode
+
+The player can derive two alternate versions of each track on demand:
+
+- `karaoke`: reduces center-panned content to suppress typical lead vocals.
+- `vocals`: emphasizes center-panned content to focus on vocals.
+
+These versions are generated with `ffmpeg` and cached under the app data directory. This is an approximation based on stereo channel filtering, not AI-grade source separation, so heavily processed or off-center vocals may not isolate cleanly.
 
 **Library & Navigation**
 
